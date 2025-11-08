@@ -3,6 +3,7 @@
 ## Required for CI/CD Pipeline
 
 ### Docker Registry Secrets
+
 ```
 DOCKER_USERNAME          # Your Docker Hub username
 DOCKER_PASSWORD          # Your Docker Hub access token (not password!)
@@ -10,14 +11,16 @@ DOCKER_REGISTRY          # Optional: defaults to docker.io
 ```
 
 ### AWS Deployment Secrets (if using AWS)
+
 ```
 AWS_ACCESS_KEY_ID        # AWS IAM user access key
-AWS_SECRET_ACCESS_KEY    # AWS IAM user secret key  
+AWS_SECRET_ACCESS_KEY    # AWS IAM user secret key
 AWS_REGION              # e.g., us-east-1
 AWS_ECR_REPOSITORY      # ECR repository URI (if using ECR)
 ```
 
 ### Server Deployment Secrets
+
 ```
 DEPLOY_HOST             # Your production server IP/domain
 DEPLOY_USER             # SSH username for deployment
@@ -26,6 +29,7 @@ DEPLOY_PATH             # Path on server where app will be deployed
 ```
 
 ### Database & Environment
+
 ```
 MONGODB_URI             # Production MongoDB connection string
 JWT_SECRET              # JWT signing secret (generate strong random string)
@@ -33,6 +37,7 @@ NODE_ENV               # Set to "production"
 ```
 
 ### Security & Monitoring
+
 ```
 SNYK_TOKEN              # Snyk security scanning token
 SLACK_WEBHOOK           # Slack notifications webhook (optional)
@@ -40,6 +45,7 @@ SENTRY_DSN             # Error monitoring (optional)
 ```
 
 ### Application Configuration
+
 ```
 FRONTEND_URL            # Production frontend URL
 BACKEND_URL            # Production backend URL
@@ -56,11 +62,13 @@ CORS_ORIGINS           # Allowed CORS origins (comma-separated)
 ## 🔒 Security Best Practices
 
 ### For Docker Hub Token:
+
 1. Go to Docker Hub > Account Settings > Security
 2. Create **New Access Token** with **Read & Write** permissions
 3. Use this token as `DOCKER_PASSWORD`, NOT your account password
 
 ### For SSH Key:
+
 ```bash
 # Generate new SSH key pair
 ssh-keygen -t rsa -b 4096 -f ~/.ssh/studysync_deploy
@@ -73,6 +81,7 @@ cat ~/.ssh/studysync_deploy
 ```
 
 ### For JWT Secret:
+
 ```bash
 # Generate secure random string (32+ characters)
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
@@ -83,11 +92,13 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 You can also create **Environment secrets** for staging vs production:
 
 ### Staging Environment
+
 - `STAGING_MONGODB_URI`
 - `STAGING_DEPLOY_HOST`
 - `STAGING_FRONTEND_URL`
 
-### Production Environment  
+### Production Environment
+
 - `PROD_MONGODB_URI`
 - `PROD_DEPLOY_HOST`
 - `PROD_FRONTEND_URL`
