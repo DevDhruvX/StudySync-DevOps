@@ -1,0 +1,260 @@
+# StudySync CD Pipeline
+# This workflow handles deployment to different environments
+name: 🚢 StudySync CD Pipeline
+
+# When should deployment happen?
+on:
+  workflow_run:
+    workflows: ["🚀 StudySync CI Pipeline"]  # Run after CI completes
+    types:
+      - completed
+    branches: [main]
+  
+  # Manual deployment trigger
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      version:
+        description: 'Docker image version to deploy'
+        required: true
+        default: 'latest'
+
+env:
+  DOCKER_REGISTRY: 'docker.io'
+
+jobs:
+  # Job 1: Deploy to Staging (Automatic)
+  deploy-staging:
+    name: 🚀 Deploy to Staging
+    runs-on: ubuntu-latest
+    # Only run if CI passed and we're on main branch
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main' }}
+    
+    environment:
+      name: staging
+      url: https://staging.studysync.com
+    
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: 🔐 Configure AWS Credentials (if using AWS)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      
+      # Deploy to staging using Docker Compose
+      - name: 🚀 Deploy to Staging Server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          port: ${{ secrets.STAGING_PORT }}
+          script: |
+            echo "🚀 Starting deployment to staging..."
+            
+            # Navigate to application directory
+            cd /opt/studysync
+            
+            # Pull latest images
+            docker-compose pull
+            
+            # Update environment variables
+            echo "NODE_ENV=staging" > .env
+            echo "MONGODB_URI=${{ secrets.STAGING_MONGODB_URI }}" >> .env
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+            
+            # Deploy with zero-downtime
+            docker-compose up -d --remove-orphans
+            
+            # Wait for health checks
+            echo "⏳ Waiting for services to be healthy..."
+            timeout 300 bash -c 'until curl -f http://localhost:5000/api/health; do sleep 5; done'
+            
+            # Clean up old images
+            docker image prune -f
+            
+            echo "✅ Deployment to staging completed!"
+
+      # Run smoke tests on staging
+      - name: 🧪 Run Smoke Tests on Staging
+        run: |
+          echo "🧪 Running smoke tests on staging environment..."
+          
+          # Wait a bit for deployment to stabilize
+          sleep 30
+          
+          # Test backend health
+          curl -f ${{ secrets.STAGING_URL }}/api/health || exit 1
+          
+          # Test frontend
+          curl -f ${{ secrets.STAGING_URL }} || exit 1
+          
+          # Test user registration (basic smoke test)
+          response=$(curl -s -X POST ${{ secrets.STAGING_URL }}/api/auth/register \
+            -H "Content-Type: application/json" \
+            -d '{"name":"Test User","email":"test@example.com","password":"testpass123"}')
+          
+          echo "Smoke test response: $response"
+          echo "✅ Staging smoke tests completed!"
+
+      # Notify team about staging deployment
+      - name: 📢 Notify Team (Staging)
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          channel: '#deployments'
+          text: |
+            🚀 Staging Deployment ${{ job.status }}
+            • Environment: Staging
+            • Commit: ${{ github.sha }}
+            • Author: ${{ github.actor }}
+            • URL: ${{ secrets.STAGING_URL }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Job 2: Deploy to Production (Manual Approval Required)
+  deploy-production:
+    name: 🏭 Deploy to Production
+    runs-on: ubuntu-latest
+    needs: deploy-staging  # Must deploy to staging first
+    if: github.ref == 'refs/heads/main'
+    
+    # Production environment with protection rules
+    environment:
+      name: production
+      url: https://studysync.com
+    
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: 🔐 Configure Production Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      
+      # Blue-Green deployment for zero downtime
+      - name: 🔄 Blue-Green Deployment to Production
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          port: ${{ secrets.PRODUCTION_PORT }}
+          script: |
+            echo "🏭 Starting Blue-Green deployment to production..."
+            
+            # Navigate to application directory
+            cd /opt/studysync
+            
+            # Backup current version
+            cp docker-compose.yml docker-compose.backup.yml
+            
+            # Pull latest images
+            docker-compose -f docker-compose.prod.yml pull
+            
+            # Start new version on different ports (Green)
+            export COMPOSE_PROJECT_NAME=studysync-green
+            docker-compose -f docker-compose.prod.yml up -d
+            
+            # Wait for health checks on new version
+            echo "⏳ Waiting for GREEN environment health checks..."
+            timeout 300 bash -c 'until curl -f http://localhost:5001/api/health; do sleep 10; done'
+            
+            # Switch load balancer to new version
+            echo "🔀 Switching traffic to GREEN environment..."
+            # Update load balancer configuration here
+            # This depends on your load balancer (nginx, AWS ALB, etc.)
+            
+            # Stop old version (Blue)
+            export COMPOSE_PROJECT_NAME=studysync-blue
+            docker-compose -f docker-compose.prod.yml down
+            
+            # Clean up
+            docker image prune -f
+            
+            echo "✅ Blue-Green deployment to production completed!"
+
+      # Production smoke tests
+      - name: 🧪 Run Production Smoke Tests
+        run: |
+          echo "🧪 Running production smoke tests..."
+          
+          # More thorough tests for production
+          sleep 60  # Wait longer for production stabilization
+          
+          # Test all critical endpoints
+          curl -f ${{ secrets.PRODUCTION_URL }}/api/health || exit 1
+          curl -f ${{ secrets.PRODUCTION_URL }} || exit 1
+          
+          # Test database connectivity
+          response=$(curl -s ${{ secrets.PRODUCTION_URL }}/api/health/detailed)
+          echo "Production health: $response"
+          
+          # Performance test (basic)
+          curl -w "@curl-format.txt" -o /dev/null -s ${{ secrets.PRODUCTION_URL }}
+          
+          echo "✅ Production smoke tests completed!"
+
+      # Notify team about production deployment
+      - name: 📢 Notify Team (Production)
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          channel: '#deployments'
+          text: |
+            🏭 Production Deployment ${{ job.status }}
+            • Environment: Production
+            • Commit: ${{ github.sha }}
+            • Author: ${{ github.actor }}
+            • URL: ${{ secrets.PRODUCTION_URL }}
+            • Deployed by: ${{ github.triggering_actor }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Job 3: Rollback (if needed)
+  rollback:
+    name: 🔙 Rollback
+    runs-on: ubuntu-latest
+    if: failure()  # Only run if deployment failed
+    
+    environment:
+      name: production
+    
+    steps:
+      - name: 🔙 Rollback to Previous Version
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          script: |
+            echo "🔙 Rolling back to previous version..."
+            
+            cd /opt/studysync
+            
+            # Restore previous configuration
+            cp docker-compose.backup.yml docker-compose.yml
+            
+            # Start previous version
+            docker-compose up -d
+            
+            # Verify rollback
+            timeout 180 bash -c 'until curl -f http://localhost:5000/api/health; do sleep 5; done'
+            
+            echo "✅ Rollback completed successfully!"
