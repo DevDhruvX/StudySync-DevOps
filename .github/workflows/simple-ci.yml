@@ -31,7 +31,7 @@ jobs:
     - name: Test Frontend  
       run: |
         cd frontend
-        npm install
+        npm install --legacy-peer-deps
         npm run build
 
   # Step 2: Build Docker Images (only on main branch)
