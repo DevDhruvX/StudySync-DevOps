@@ -2,9 +2,10 @@
 
 > **A modern note-taking application showcasing enterprise-grade DevOps practices with Docker, monitoring, and automated deployments.**
 
-[![CI/CD Pipeline](https://github.com/YOUR_USERNAME/studysync-devops/workflows/CI/badge.svg)](https://github.com/YOUR_USERNAME/studysync-devops/actions)
-[![Docker](https://img.shields.io/badge/Docker-Multi--Stage%20Builds-blue)](https://hub.docker.com/r/YOUR_USERNAME/studysync)
-[![MongoDB](https://img.shields.io/badge/Database-MongoDB%20Atlas-green)](https://www.mongodb.com/atlas)
+[![CI/CD Pipeline](https://github.com/DevDhruvX/DevOps-Project/workflows/StudySync%20CI/CD%20Pipeline/badge.svg)](https://github.com/DevDhruvX/DevOps-Project/actions)
+[![Simple CI/CD](https://github.com/DevDhruvX/DevOps-Project/workflows/Simple%20CI/CD/badge.svg)](https://github.com/DevDhruvX/DevOps-Project/actions)
+[![Docker](https://img.shields.io/badge/Docker-Multi--Stage%20Builds-blue)](https://hub.docker.com/)
+[![MongoDB](https://img.shields.io/badge/Database-MongoDB-green)](https://www.mongodb.com/)
 
 ## 📚 What is StudySync?
 
