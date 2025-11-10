@@ -4,7 +4,7 @@ import axios from 'axios';
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api', // Backend server URL
+  baseURL: 'https://studysync-backend-gmhn.onrender.com/api', // Backend server URL
   headers: {
     'Content-Type': 'application/json',
   },
