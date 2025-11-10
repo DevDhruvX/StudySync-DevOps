@@ -18,8 +18,58 @@ const AuthPage = () => {
     password: ''
   });
 
+  const [errors, setErrors] = useState({
+    name: '',
+    email: '',
+    password: ''
+  });
+
+  // Validation function
+  const validateForm = () => {
+    const newErrors = {
+      name: '',
+      email: '',
+      password: ''
+    };
+
+    // Name validation (only for signup)
+    if (!isLogin && !formData.name.trim()) {
+      newErrors.name = 'Name is required';
+    } else if (!isLogin && formData.name.length < 2) {
+      newErrors.name = 'Name must be at least 2 characters';
+    }
+
+    // Email validation
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    // Password validation
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+
+    setErrors(newErrors);
+    
+    // Return true if no errors
+    return !Object.values(newErrors).some(error => error !== '');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Clear previous errors
+    setErrors({ name: '', email: '', password: '' });
+    
+    // Validate form before submission
+    if (!validateForm()) {
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -50,10 +100,20 @@ const AuthPage = () => {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
+
+    // Clear error for this field when user starts typing
+    if (errors[name as keyof typeof errors]) {
+      setErrors({
+        ...errors,
+        [name]: ''
+      });
+    }
   };
 
   return (
@@ -124,10 +184,15 @@ const AuthPage = () => {
                     value={formData.name}
                     onChange={handleInputChange}
                     placeholder="Enter your full name"
-                    className="pl-10 bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-purple-500"
+                    className={`pl-10 bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-purple-500 ${
+                      errors.name ? 'border-red-500 focus:border-red-500' : ''
+                    }`}
                     required={!isLogin}
                   />
                 </div>
+                {errors.name && (
+                  <p className="text-red-400 text-sm mt-1">{errors.name}</p>
+                )}
               </motion.div>
             )}
 
@@ -143,10 +208,15 @@ const AuthPage = () => {
                   value={formData.email}
                   onChange={handleInputChange}
                   placeholder="Enter your email"
-                  className="pl-10 bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-purple-500"
+                  className={`pl-10 bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-purple-500 ${
+                    errors.email ? 'border-red-500 focus:border-red-500' : ''
+                  }`}
                   required
                 />
               </div>
+              {errors.email && (
+                <p className="text-red-400 text-sm mt-1">{errors.email}</p>
+              )}
             </div>
 
             <div>
@@ -161,7 +231,9 @@ const AuthPage = () => {
                   value={formData.password}
                   onChange={handleInputChange}
                   placeholder="Enter your password"
-                  className="pl-10 pr-10 bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-purple-500"
+                  className={`pl-10 pr-10 bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-purple-500 ${
+                    errors.password ? 'border-red-500 focus:border-red-500' : ''
+                  }`}
                   required
                 />
                 <button
@@ -172,6 +244,9 @@ const AuthPage = () => {
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
+              {errors.password && (
+                <p className="text-red-400 text-sm mt-1">{errors.password}</p>
+              )}
             </div>
 
             {!isLogin && (
