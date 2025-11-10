@@ -23,7 +23,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // API Routes
-app.use('/api/auth', require('./routes/auth'));
+console.log('🔧 Loading auth routes...');
+try {
+  app.use('/api/auth', require('./routes/auth'));
+  console.log('✅ Auth routes loaded successfully');
+} catch (error) {
+  console.error('❌ Failed to load auth routes:', error.message);
+}
+
 app.use('/api/subjects', require('./routes/subjects'));
 app.use('/api/notes', require('./routes/notes'));
 app.use('/api/sharing', require('./routes/sharing'));
