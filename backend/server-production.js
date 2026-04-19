@@ -1,4 +1,5 @@
 // server-production.js - Production Server that serves both API and Frontend
+// Demo build triggered on: April 19, 2026 - Live CI/CD Pipeline Demo
 
 const express = require('express');
 const cors = require('cors');
