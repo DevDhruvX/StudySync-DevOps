@@ -338,7 +338,7 @@ const StudySyncDashboard = () => {
                 <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </motion.div>
               <div>
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-green-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent">
                   StudySync
                 </h1>
                 <p className="text-purple-300 text-xs sm:text-sm mt-1 hidden sm:block">
