@@ -339,7 +339,7 @@ const StudySyncDashboard = () => {
               </motion.div>
               <div>
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-green-400 via-cyan-400 to-blue-600 bg-clip-text text-transparent">
-                  STUDYsyncing
+                  STUDYsync
                 </h1>
                 <p className="text-purple-300 text-xs sm:text-sm mt-1 hidden sm:block">
                   Your AI-powered learning companion
