@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Plus, 
-  BookOpen, 
+import {
+  Plus,
+  BookOpen,
   Search,
   X,
   Sparkles,
@@ -32,11 +32,11 @@ const StudySyncDashboard = () => {
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(Date.now());
   const [autoRefresh] = useState(true);
-  
+
   // Share modal state
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [sharingSubject, setSharingSubject] = useState<Subject | null>(null);
-  
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -44,7 +44,7 @@ const StudySyncDashboard = () => {
   });
 
   const colors = [
-    '#6366F1', '#EC4899', '#10B981', '#F59E0B', 
+    '#6366F1', '#EC4899', '#10B981', '#F59E0B',
     '#8B5CF6', '#EF4444', '#06B6D4', '#84CC16',
     '#F97316', '#3B82F6', '#8B5A2B', '#14B8A6',
     '#F59E0B', '#EC4899', '#8B5CF6', '#EF4444'
@@ -86,7 +86,7 @@ const StudySyncDashboard = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name.trim()) {
       toast.error('Subject name is required');
       return;
@@ -120,7 +120,7 @@ const StudySyncDashboard = () => {
           toast.error('Failed to create subject');
         }
       }
-      
+
       handleCloseModal();
     } catch (error) {
       console.error('Error saving subject:', error);
@@ -180,7 +180,7 @@ const StudySyncDashboard = () => {
     expiresAt?: string;
   }) => {
     if (!sharingSubject) return null;
-    
+
     try {
       const response = await sharingApi.shareSubject(sharingSubject._id, shareSettings);
       if (response.success && response.data) {
@@ -215,17 +215,17 @@ const StudySyncDashboard = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <motion.div 
+        <motion.div
           className="flex flex-col items-center space-y-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
           <motion.div
-            animate={{ 
+            animate={{
               rotate: 360,
               scale: [1, 1.2, 1]
             }}
-            transition={{ 
+            transition={{
               rotate: { duration: 2, repeat: Infinity, ease: "linear" },
               scale: { duration: 1, repeat: Infinity }
             }}
@@ -246,7 +246,7 @@ const StudySyncDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-      <Toaster 
+      <Toaster
         position="top-right"
         toastOptions={{
           duration: 3000,
@@ -270,7 +270,7 @@ const StudySyncDashboard = () => {
                 <h1 className="text-xl font-bold text-white">StudySync</h1>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <div className="text-right">
                 <p className="text-white font-medium">{user?.name}</p>
@@ -346,7 +346,7 @@ const StudySyncDashboard = () => {
                 </p>
               </div>
             </motion.div>
-            
+
             <div className="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto">
               <motion.button
                 initial={{ opacity: 0, x: 20 }}
@@ -377,23 +377,22 @@ const StudySyncDashboard = () => {
                 <Search className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span className="hidden sm:inline">Search All</span>
               </motion.button>
-              
+
               <motion.button
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setShowAnalytics(!showAnalytics)}
-                className={`px-2 sm:px-4 py-2 sm:py-3 rounded-xl font-semibold flex items-center space-x-1 sm:space-x-2 transition-all duration-300 text-sm sm:text-base ${
-                  showAnalytics 
-                    ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/50' 
+                className={`px-2 sm:px-4 py-2 sm:py-3 rounded-xl font-semibold flex items-center space-x-1 sm:space-x-2 transition-all duration-300 text-sm sm:text-base ${showAnalytics
+                    ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/50'
                     : 'bg-white/10 text-white hover:bg-white/20'
-                }`}
+                  }`}
               >
                 <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span className="hidden sm:inline">{showAnalytics ? 'Show Subjects' : 'Analytics'}</span>
               </motion.button>
-              
+
               <motion.button
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -520,8 +519,8 @@ const StudySyncDashboard = () => {
                     {searchQuery ? 'No subjects found' : 'Start Your Journey'}
                   </h3>
                   <p className="text-purple-200 mb-8 text-lg">
-                    {searchQuery 
-                      ? 'Try adjusting your search' 
+                    {searchQuery
+                      ? 'Try adjusting your search'
                       : 'Create your first subject and begin learning'
                     }
                   </p>
